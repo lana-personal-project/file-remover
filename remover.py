@@ -5,7 +5,7 @@ from itertools import repeat
 
 
 def run():
-    directory: str = get_containing_dir_from_input()
+    directory: str = get_containing_dir()
     trash_bin: str = create_trash_bin(directory)
     files: list = get_all_file_path(directory)
 
@@ -19,13 +19,8 @@ def run():
                              repeat(trash_bin)))
 
 
-def get_containing_dir_from_input():
-    is_work_dir_exist = False
-    while not is_work_dir_exist:
-        path = input('path to folder contains files: ')
-        if os.path.exists(path):
-            print('-> working directory: ' + path)
-            return path
+def get_containing_dir():
+    return os.getcwd()
 
 
 def create_trash_bin(origin_directory):
@@ -40,6 +35,7 @@ def get_all_file_path(path_to_folder):
     files = os.listdir(path_to_folder)
     for file in files:
         file_list.append(os.path.join(path_to_folder, file))
+    file_list.remove(os.path.abspath(__file__))
     return sorted(file_list)
 
 
