@@ -14,7 +14,8 @@ class Remover:
 
     @staticmethod
     def _get_containing_dir() -> str:
-        return os.getcwd()
+        file_path = os.path.abspath(__file__)
+        return os.path.splitext(file_path)[0]
 
     @staticmethod
     def _get_max_size_threads_pool() -> Pool:
