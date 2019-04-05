@@ -76,12 +76,16 @@ class Remover:
         return trash_path
 
     def move(self, files: list, destination: str, number: int):
+        files_len = len(files)
         index_list = self._get_move_index_list(number, len(files))
         for i in index_list:
-            filename = os.path.basename(files[i])
-            destination_filename = os.path.join(destination, filename)
-            destination_filename = self._handle_duplicate(destination_filename)
-            os.rename(files[i], destination_filename)
+            if i < files_len:
+                filename = os.path.basename(files[i])
+                destination_filename = os.path.join(destination, filename)
+                destination_filename = self._handle_duplicate(destination_filename)
+                os.rename(files[i], destination_filename)
+            else:
+                return
 
     @staticmethod
     def _get_move_index_list(number: int, max_len: int) -> list:
