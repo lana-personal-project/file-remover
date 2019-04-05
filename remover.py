@@ -107,7 +107,7 @@ class Remover:
 remover = Remover()
 
 remove_trash = input('remove *_removed folder ? (y,n) default n:')
-is_remove_trash = remove_trash.split() is 'y'
+is_remove_trash = remove_trash.strip() is 'y'
 if is_remove_trash:
     print('-> y')
 else:
