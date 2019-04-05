@@ -21,10 +21,17 @@ class Remover:
         threads_for_other_process = 1
         return Pool(max_threads - threads_for_other_process)
 
+    def hard_remove(self):
+        self.remove()
+
     def remove(self):
         remove_size, chunks_size = self.get_remove_size_and_chunk_size_from_input()
-        trash_bin: str = self.create_trash_bin()
+        trash_bin: str = self.ensure_trash_bin()
         chunks_list = self.get_splited_path_list(chunks_size)
+
+        self.threads_pool.starmap(self.move, zip(chunks_list,
+                                                 repeat(trash_bin),
+                                                 repeat(remove_size)))
 
     def get_remove_size_and_chunk_size_from_input(self) -> (int, int):
         default = '1/2'
@@ -56,20 +63,21 @@ class Remover:
         for i in range(0, len(path_list), split_range):
             yield path_list[i:i + split_range]
 
-    def create_trash_bin(self):
+    def ensure_trash_bin(self):
         trash_path = self.containing_dir + '_removed'
         if not os.path.exists(trash_path):
             os.mkdir(trash_path)
         return trash_path
 
-    def move(self, number: int, files: list, destination: str):
+    def move(self, files: list, destination: str, number: int):
         index_list = self._get_move_index_list(number, len(files))
         for i in index_list:
             destination_filename = os.path.join(destination, files[i])
             destination_filename = self._handle_duplicate(destination_filename)
             os.rename(files[i], destination_filename)
 
-    def _get_move_index_list(self, number: int, max_len: int) -> list:
+    @staticmethod
+    def _get_move_index_list(number: int, max_len: int) -> list:
         step = round(max_len / number) + 1
         move_index = 0
         index_list = [move_index]
@@ -78,7 +86,8 @@ class Remover:
             index_list.append(move_index)
         return move_index
 
-    def _handle_duplicate(self, path: str) -> str:
+    @staticmethod
+    def _handle_duplicate(path: str) -> str:
         origin_path = path
         suffix = 1
         have_duplicate = os.path.exists(path)
