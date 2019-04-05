@@ -22,8 +22,7 @@ class Remover:
         threads_for_other_process = 1
         return Pool(max_threads - threads_for_other_process)
 
-    def hard_remove(self):
-        self.remove()
+    def remove_trash(self):
         trash = self.ensure_trash_bin()
         shutil.rmtree(trash)
 
@@ -40,13 +39,14 @@ class Remover:
 
     def get_remove_size_and_chunk_size_from_input(self) -> (int, int):
         default = '1/2'
-        rate = input('delete level (remove/chunk_size) (default ' + default + '): ')
+        rate = input('delete rate (remove/chunk_size) (default ' + default + '): ')
         pattern = re.compile('^[1-9]+/[1-9]+')
         if not re.match(pattern, rate.strip()):
             rate = default
         params = rate.split('/')
         remove_size = int(params[0])
         chunk_size = int(params[1])
+        print('-> ' + rate)
         return remove_size, chunk_size
 
     def get_splited_path_list(self, split_range) -> list:
@@ -105,4 +105,14 @@ class Remover:
 
 
 remover = Remover()
+
+remove_trash = input('remove *_removed folder ? (y,n) default n:')
+is_remove_trash = remove_trash.split() is 'y'
+if is_remove_trash:
+    print('-> y')
+else:
+    print('-> n')
+
 remover.remove()
+if is_remove_trash:
+    remover.remove_trash()
