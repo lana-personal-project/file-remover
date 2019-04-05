@@ -1,6 +1,6 @@
 import os
 import multiprocessing
-from multiprocessing import Pool
+from multiprocessing.dummy import Pool
 import re
 from itertools import repeat
 
@@ -32,6 +32,8 @@ class Remover:
         self.threads_pool.starmap(self.move, zip(chunks_list,
                                                  repeat(trash_bin),
                                                  repeat(remove_size)))
+        self.threads_pool.close()
+        self.threads_pool.join()
 
     def get_remove_size_and_chunk_size_from_input(self) -> (int, int):
         default = '1/2'
@@ -84,7 +86,7 @@ class Remover:
         for i in range(1, number):
             move_index += step
             index_list.append(move_index)
-        return move_index
+        return index_list
 
     @staticmethod
     def _handle_duplicate(path: str) -> str:
