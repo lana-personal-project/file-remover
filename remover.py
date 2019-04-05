@@ -96,3 +96,7 @@ class Remover:
             path = origin_path + '_' + str(suffix)
             have_duplicate = os.path.exists(path)
         return path
+
+
+remover = Remover()
+remover.remove()
