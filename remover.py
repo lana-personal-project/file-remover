@@ -3,6 +3,7 @@ import multiprocessing
 from multiprocessing.dummy import Pool
 import re
 from itertools import repeat
+import shutil
 
 
 class Remover:
@@ -23,6 +24,8 @@ class Remover:
 
     def hard_remove(self):
         self.remove()
+        trash = self.ensure_trash_bin()
+        shutil.rmtree(trash)
 
     def remove(self):
         remove_size, chunks_size = self.get_remove_size_and_chunk_size_from_input()
