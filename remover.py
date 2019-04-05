@@ -26,7 +26,7 @@ class Remover:
 
     def remove(self):
         remove_size, chunks_size = self.get_remove_size_and_chunk_size_from_input()
-        trash_bin: str = self.ensure_trash_bin()
+        trash_bin = self.ensure_trash_bin()
         chunks_list = self.get_splited_path_list(chunks_size)
 
         self.threads_pool.starmap(self.move, zip(chunks_list,
@@ -48,8 +48,8 @@ class Remover:
 
     def get_splited_path_list(self, split_range) -> list:
         files_path = self._get_all_file_path(self.containing_dir)
-        self._split_path_list(files_path, split_range)
-        return files_path
+        files_path = self._split_path_list(files_path, split_range)
+        return list(files_path)
 
     @staticmethod
     def _get_all_file_path(path_to_folder) -> list:
@@ -74,7 +74,8 @@ class Remover:
     def move(self, files: list, destination: str, number: int):
         index_list = self._get_move_index_list(number, len(files))
         for i in index_list:
-            destination_filename = os.path.join(destination, files[i])
+            filename = os.path.basename(files[i])
+            destination_filename = os.path.join(destination, filename)
             destination_filename = self._handle_duplicate(destination_filename)
             os.rename(files[i], destination_filename)
 
