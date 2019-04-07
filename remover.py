@@ -2,36 +2,50 @@ import os
 import multiprocessing
 from multiprocessing.dummy import Pool
 import re
-from itertools import repeat
-import shutil
+
+import math
 
 
 class Remover:
 
     def __init__(self):
         self.working_dir = ''
+        self.trash_bin = ''
         self.remove_size = 1
         self.chunk_size = 1
+        self.set_default_working_dir_and_trash_bin()
 
-    def remove(self, remove_trash_bin=True):
-        threads_pool = self._get_max_size_threads_pool()
-        trash_bin = self._ensure_trash_bin()
-        chunks_list = self._get_splited_path_list()
-
-        threads_pool.starmap(self.move_to_trash, zip(chunks_list,
-                                                     repeat(trash_bin),
-                                                     ))
-        threads_pool.close()
-        threads_pool.join()
-
-        if remove_trash_bin:
-            shutil.rmtree(trash_bin)
+    def set_default_working_dir_and_trash_bin(self):
+        script_path = os.path.abspath(__file__)
+        self.working_dir = os.path.split(script_path)[0]
+        self.trash_bin = self._ensure_trash_bin()
 
     def _ensure_trash_bin(self):
         trash_path = self.working_dir + '_removed'
         if not os.path.exists(trash_path):
             os.mkdir(trash_path)
         return trash_path
+
+    def set_working_dir(self, work_dir: str):
+        if os.path.exists(work_dir):
+            self.working_dir = work_dir
+            self.trash_bin = self._ensure_trash_bin()
+        else:
+            raise FileExistsError('work_dir not found')
+
+    def set_remove_size(self, remove_size: int):
+        self.remove_size = remove_size
+
+    def set_chunk_size(self, chunk_size: int):
+        self.chunk_size = chunk_size
+
+    def remove(self):
+        threads_pool = self._get_max_size_threads_pool()
+        chunks_list = self._get_splited_path_list()
+
+        threads_pool.starmap(self._move_to_trash, chunks_list)
+        threads_pool.close()
+        threads_pool.join()
 
     @staticmethod
     def _get_max_size_threads_pool() -> Pool:
@@ -56,27 +70,34 @@ class Remover:
         for i in range(0, len(path_list), self.chunk_size):
             yield path_list[i:i + self.chunk_size]
 
-    def move_to_trash(self, files: list, trash_bin: str):
+    def _move_to_trash(self, files: list):
         files_len = len(files)
-        index_list = self._get_move_index_list(len(files))
+        index_list = self._get_move_index_list(files_len)
         for i in index_list:
             if i < files_len:
                 filename = os.path.basename(files[i])
-                destination_filename = os.path.join(trash_bin, filename)
+                destination_filename = os.path.join(self.trash_bin, filename)
                 destination_filename = self._handle_duplicate(destination_filename)
                 os.rename(files[i], destination_filename)
             else:
                 return
 
     def _get_move_index_list(self, number_of_file: int) -> list:
-        total_move = round(number_of_file * (self.remove_size / self.chunk_size))
-        step = round(number_of_file / total_move) + 1
+        total_move = self._round(number_of_file * (self.remove_size / self.chunk_size))
+        step = self._round(number_of_file / total_move)
         move_index = 0
         index_list = [move_index]
         for i in range(1, total_move):
             move_index += step
             index_list.append(move_index)
         return index_list
+
+    @staticmethod
+    def _round(val):
+        if (float(val) % 1) >= 0.5:
+            return math.ceil(val)
+        else:
+            return round(val)
 
     @staticmethod
     def _handle_duplicate(path: str) -> str:
@@ -88,11 +109,6 @@ class Remover:
             path = origin_path + '_' + str(suffix)
             have_duplicate = os.path.exists(path)
         return path
-
-
-def get_containing_dir() -> str:
-    file_path = os.path.abspath(__file__)
-    return os.path.split(file_path)[0]
 
 
 def get_remove_size_and_chunk_size_from_input() -> (int, int):
