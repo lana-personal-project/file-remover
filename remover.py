@@ -88,13 +88,15 @@ class Remover:
 
     def _get_move_index_list(self, number_of_file: int) -> list:
         total_move = self._round(number_of_file * (self._remove_size / self._chunk_size))
-        step = self._round(number_of_file / total_move)
-        move_index = 0
-        index_list = [move_index]
-        for i in range(1, total_move):
-            move_index += step
-            index_list.append(move_index)
-        return index_list
+        if total_move > 0:
+            step = self._round(number_of_file / total_move)
+            move_index = 0
+            index_list = [move_index]
+            for i in range(1, total_move):
+                move_index += step
+                index_list.append(move_index)
+            return index_list
+        return []
 
     @staticmethod
     def _round(val):
